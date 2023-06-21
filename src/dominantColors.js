@@ -2,7 +2,6 @@ import getPixels from "get-pixels";
 import convert from "color-convert";
 import kmeans from "node-kmeans";
 
-const PIXELS_MAX = 10000; // Maximum number of pixels to process from the image, 100x100 = 10,000
 const ALPHA_THRESHOLD = 125; // Minimum alpha value (transparency) for a pixel to be considered
 const KMEANS_SEED = 0.3; // Seed value for the k-means clustering
 const VALUE_MIN = 5; // Minimum value value for a pixel to be considered
@@ -11,7 +10,7 @@ const SATURATION_MIN = 10; // Minimum saturation value for a pixel to be conside
 const SATURATION_MAX = 100; // Maximum saturation value for a pixel to be considered
 const SATURATION_BOOST = 0; // Amount to boost saturation by (0-100)
 const VALUE_BOOST = 0; // Amount to boost value by (0-100)
-const BLACK_WHITE_THRESHOLD = 55; // Threshold for determining if an image is black and white
+const SAMPLE_RATE = 0.009; // Higher values will sample more pixels
 
 /**
  * Get pixels from an image and convert it into an ndarray of pixels
@@ -64,7 +63,6 @@ async function getKmeansClusters(points, numClusters) {
 
 function getSampledFlatPixelArray(
   pixels,
-  pixelsMax,
   valueMin,
   valueMax,
   saturationMin,
@@ -74,11 +72,14 @@ function getSampledFlatPixelArray(
 ) {
   const totalImagePixels = pixels.shape[0] * pixels.shape[1];
 
-  const numberPixelsToSample = Math.min(totalImagePixels, pixelsMax);
-
+  // For performance reasons, take a higher percentage of pixels for smaller images:
+  const numberPixelsToSample = Math.min(
+    totalImagePixels,
+    Math.round(SAMPLE_RATE * totalImagePixels + 4000)
+  );
   const pixelArray = [];
   let i, j, idx;
-  // Randomly sample pixelsMax pixels from the image
+  // Randomly sample pixels from the image
   for (let count = 0; count < numberPixelsToSample; count++) {
     i = Math.floor(Math.random() * pixels.shape[0]);
     j = Math.floor(Math.random() * pixels.shape[1]);
@@ -99,8 +100,8 @@ function getSampledFlatPixelArray(
         s = Math.min(s + saturationBoost, 100);
         v = Math.min(v + valueBoost, 100);
       }
-    // Skip pixels that fall outside saturation and value ranges
-    if (
+      // Skip pixels that fall outside saturation and value ranges
+      if (
         v >= valueMin &&
         v <= valueMax &&
         s >= saturationMin &&
@@ -116,7 +117,6 @@ function getSampledFlatPixelArray(
 export default async function dominantColors(
   imageUrlOrPath,
   numColors,
-  pixelsMax = PIXELS_MAX,
   valueMin = VALUE_MIN,
   valueMax = VALUE_MAX,
   saturationMin = SATURATION_MIN,
@@ -128,7 +128,6 @@ export default async function dominantColors(
     const pixels = await getPixelsAsync(imageUrlOrPath);
     let dataArray = getSampledFlatPixelArray(
       pixels,
-      pixelsMax,
       valueMin,
       valueMax,
       saturationMin,
@@ -141,9 +140,9 @@ export default async function dominantColors(
     try {
       clusters = await getKmeansClusters(dataArray, numColors);
     } catch (error) {
+      // If k-means clustering fails, try again without filtering pixels
       let dataArray = getSampledFlatPixelArray(
         pixels,
-        pixelsMax,
         0,
         100,
         0,

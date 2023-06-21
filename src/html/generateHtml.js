@@ -2,18 +2,18 @@ import { writeFileSync } from "fs";
 import dominantColors from "../dominantColors.js";
 
 const argSets = [
-  { name: 'No filter', args: [10000, 0, 100, 0, 100] },
-  { name: 'default 5 < v, 10 < s', args: [10000] },
-  { name: '5 < v < 95, 10 < s', args: [10000, 5, 95, 10, 100] },
-  { name: '5 < v, 5 < s', args: [10000, 5, 100, 5, 100] },
-  { name: '20 < v', args: [10000, 20, 100, 0, 100] },
-  { name: '10 < s', args: [10000, 0, 100, 10, 100] },
-  { name: '20 < v, 10 < s', args: [10000, 20, 100, 10, 100] },
-  { name: '40 < v,', args: [10000, 40, 100, 0, 100] },
-  { name: '20 < s', args: [10000, 0, 100, 20, 100] },
-  { name: '40 < v, 20 < s', args: [10000, 40, 100, 20, 100] },
-  { name: 'v boost 10', args: [10000, 0, 100, 0, 100, 10] },
-  { name: 's boost 10', args: [10000, 60, 100, 0, 100, 0, 10] },
+  { name: 'No filter', args: [0, 100, 0, 100] },
+  { name: 'default 5 < v, 10 < s', args: [] },
+  { name: '5 < v < 95, 10 < s', args: [5, 95, 10, 100] },
+  { name: '5 < v, 5 < s', args: [5, 100, 5, 100] },
+  { name: '20 < v', args: [20, 100, 0, 100] },
+  { name: '10 < s', args: [0, 100, 10, 100] },
+  { name: '20 < v, 10 < s', args: [20, 100, 10, 100] },
+  { name: '40 < v,', args: [40, 100, 0, 100] },
+  { name: '20 < s', args: [0, 100, 20, 100] },
+  { name: '40 < v, 20 < s', args: [40, 100, 20, 100] },
+  { name: 'v boost 10', args: [0, 100, 0, 100, 10] },
+  { name: 's boost 10', args: [60, 100, 0, 100, 0, 10] },
 ]
 
 async function getPalettes(imageFile) {
