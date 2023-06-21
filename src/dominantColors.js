@@ -122,7 +122,8 @@ export default async function dominantColors(
   saturationMin = SATURATION_MIN,
   saturationMax = SATURATION_MAX,
   valueBoost = VALUE_BOOST,
-  saturationBoost = SATURATION_BOOST
+  saturationBoost = SATURATION_BOOST,
+  isSortedByHue = false
 ) {
   try {
     const pixels = await getPixelsAsync(imageUrlOrPath);
@@ -141,15 +142,7 @@ export default async function dominantColors(
       clusters = await getKmeansClusters(dataArray, numColors);
     } catch (error) {
       // If k-means clustering fails, try again without filtering pixels
-      let dataArray = getSampledFlatPixelArray(
-        pixels,
-        0,
-        100,
-        0,
-        100,
-        0,
-        0
-      );
+      let dataArray = getSampledFlatPixelArray(pixels, 0, 100, 0, 100, 0, 0);
       clusters = await getKmeansClusters(dataArray, numColors);
     }
 
@@ -158,12 +151,24 @@ export default async function dominantColors(
       0
     );
 
-    return clusters.map((cluster) => {
+    // Map clusters to an array of objects, where each object contains the color and
+    // its hue value, along with the percent.
+    const palette = clusters.map((cluster) => {
       return {
-        color: convert.lab.hex(cluster.centroid),
+        lab: cluster.centroid,
+        rgb: convert.lab.rgb(cluster.centroid),
+        hex: convert.lab.hex(cluster.centroid),
+        hsv: convert.lab.hsv(cluster.centroid),
         percent: cluster.cluster.length / totalLength,
       };
     });
+
+    if (isSortedByHue) {
+      // Sort the clusters by hue value
+      palette.sort((a, b) => a.hsv[0] - b.hsv[0]);
+    }
+
+    return palette;
   } catch (error) {
     return [];
   }

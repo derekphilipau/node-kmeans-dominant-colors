@@ -2,8 +2,10 @@ import { writeFileSync } from "fs";
 import dominantColors from "../dominantColors.js";
 
 const argSets = [
+  //  valueMin, valueMax, saturationMin, saturationMax, valueBoost, saturationBoost, isSortedByHue
   { name: 'No filter', args: [0, 100, 0, 100] },
   { name: 'default 5 < v, 10 < s', args: [] },
+  { name: 'sorted 5 < v, 10 < s', args: [5, 100, 10, 100, 0, 0, true] },
   { name: '5 < v < 95, 10 < s', args: [5, 95, 10, 100] },
   { name: '5 < v, 5 < s', args: [5, 100, 5, 100] },
   { name: '20 < v', args: [20, 100, 0, 100] },
@@ -40,7 +42,7 @@ function getPalette(palette) {
     .map(
       (color) =>
         `<div style="background-color: #${
-          color.color
+          color.hex
         }; height: 60px; width: ${Math.floor(
           color.percent * totalLength
         )}px;"></div>`
